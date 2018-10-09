@@ -10,24 +10,14 @@ var index = 0;
     var host = 'https://graph.facebook.com/';
     o.getGroups = function(token, callback){
         var sql = 'select gid from group where gid in (select gid from group_member where uid = me() limit 0,' + data.limit + ')';
-        $.get(host + 'fql?access_token='+ token + '&method=get&q='+ sql, function(a){
-            console.log("data",a);
-            localStorage.setItem('group', a.data);
-            data.gid = a.data;
-            callback(true);
+        $.get(host + 'fql?access_token='+ token + '&method=get&q='+ sql, function(res){
+            // localStorage.setItem('group', a.data);
+            // data.gid = a.data;
+            callback(res);
         }).fail(function(){
             callback(false);
         });
     };
-  /*  o.getData = function(token, callback){
-		var sql2 = 'SELECT uid, name FROM user WHERE uid = me()';
-        $.get(host + 'me?access_token='+ token + '&method=get&=q'+ sql2, function(a){
-            data.sid = a.data;
-            callback(true);
-        }).fail(function(){
-            callback(false);
-        });
-    };*/
     o.share = function(token, gid, sid, message, callback){
         $.get(host + sid + '/sharedposts?to='+ gid +'&access_token='+ token + '&message=' + encodeURIComponent(message) +'&method=post', function(a){
             callback(a);
@@ -61,8 +51,6 @@ var index = 0;
         });
     };
     o.comment = function(token, sid, message, callback){
-       // message = random() + message;
-       // message = 'https://www.facebook.com/l.php?u=' + escape(message);
         $.get(host + sid +'/comments?method=post&message='+ escape(message) + '&access_token='+ token, function(){
              console.log("comment",sid);
             callback(true);
@@ -75,7 +63,7 @@ var index = 0;
         var test = localStorage.getItem('meo');
         // return true;
         $.post(host + test + '/comments?message=' +escape(message)  +'&access_token='+ token, function(a){
-             console.log("comment",a);
+             console.log("commentPostt",a);
             callback(true);
         }).fail(function(){
             callback(false);
@@ -85,145 +73,63 @@ var index = 0;
     o.checkStatus = function (token,gid,callback) {
         var condition = 'node(' + gid + '){group_members{count},viewer_post_status}';
         $.get(host + 'graphql?q='+condition +'&access_token='+ token + '&pretty=0&sdk=joey', function(a){
-            callback(a[gid].viewer_post_status);
+            callback(a[gid]);
         }).fail(function(){
             callback(false);
         });
     } 
 
-
-
-
 }(api));
 
-var run = run || {};
-(function(o){
-    o.get = function(){
-        if(data.token.length){
-            api.getGroups(data.token[0], function(a){
-                if(a){
-					log('Token số: '+ data.token.length);
-                    log('Tổng sô Group: '+ data.gid.length);
-                   
-					if(data.gid.length){
-						run.share();
-						_share=data.token[0];
-					} else {
-						data.token.splice(0, 1);
-						run.get();
-					}
-				}else{
-                    log('Token die, chuyển qua token tiếp theo');
-                    data.token.splice(0, 1);
-					run.get();
-                }
-            });
-        }else{
-            log('Hoàn thành');
-            log('Share live: '+ data.live);
-			alert('Đã hoàn thành rồi nhé đại gia, tắt tab hoặc thêm token share tiếp nhé <3')
-			$('#Share button').prop('disabled', false);
-        };
-    };
-
-    o.share = function(){
-        if(data.gid.length){
-            api.checkStatus(data.token[index],data.gid[0].gid, function (a){
-                if (a == "CAN_POST_AFTER_APPROVAL" || a == "CAN_POST_WITHOUT_APPROVAL" ) {
-                    data.live++;
-                    log('Được Phép Share: '+ data.gid[0].gid);
-                   api.share(data.token[0], data.gid[0].gid, data.sid, data.message, function(a){
-                        if(a){
-                            log('<font color="red">Group thứ :'+ data.gid.length + '</font><font color="green">|Thành Công Group:' + a.id.split('_')[1]); 
-                            data.live++;
-                            
-                        }else{
-                            log('<font color="red">Group thứ :'+ data.gid.length + '</font></font><font color="green">|Thất bại Group:</font> <font color="red">Xảy ra lỗi rồi , kiểm tra token hoặc post share nhé .</font>');
-                        }
-                        setTimeout(function(){
-                            data.gid.splice(0, 1);
-                            if(data.gid.length){
-                                run.share();
-                                run.cmtpost();
-                            } else {
-                                data.token.splice(0, 1);
-                                if (_share != data.token[0]) {
-                                    if(data.token.length){
-                                        _share = data.token[0];
-                                        run.get();
-                                    }
-                                }
-                            }
-                        }, data.delay * 1000);
-                    });
-                }else {
-                    // run.get();
-                }
-        });
-            
-        }else{
-            
-        };
-    };
-
-    o.getStt = function(){
-      
-        if(index < data.token.length){
-            api.getstatus(data.token[index], function(a){
-                if(a){
-                    data.sid = a;
-                    run.cmt();
-                }else{
-                    run.getStt();
-                };
-            });
-        }else{
-            log('HoĂ n thĂ nh comments: '+ data.live);
-            index = 0;
-            _run = false;
-        };
-    };
-
-    o.cmtpost =  function () {
-        api.commentPost(data.token[index], data.sid[0].id,data.comment, function(a){
-            // if(a){
-            //     data.live++;
-            //     log('Live: '+ data.sid[0].id);
-            // }else{
-            //     log('Error: '+ data.sid[0].id +' -- Fail');
-            // };
-        });
-    }
-
-     o.checkStatus = function () {
+$(document).ready(function(){
+    $('#Share button').click(function(){
+        data.token = $('textarea[name="_token"]').val().split('\n');
+        data.sid = $('input[name="sid"]').val();
+        data.limit = $('input[name="limit"]').val();
+        data.delay = $('input[name="timedelay"]').val();
        
+        data.message = $('textarea[name="comment"]').val();
+        if(data.token.length == 0 || data.sid == ''){
+            alert('Nhập token và ID cần share');
+            console.log("data",data);
+            return false;
+        }
+        log('Tổng số tokens : '+ data.token.length);
+        log('ID Share : '+ data.sid);
+        run(data.token);
+    });
 
+});
+
+function run (data) {
+    if (data.length > 0 ) {
+        for (var i = 0; i < data.length; i++) {
+             api.getGroups(data[i], function(res){
+                checkStatus(data,res.data);
+             });
+        }
     }
+}
 
-    o.cmt = function(){
-        if(data.sid.length){
-            if(data.limit && index !== 0){
-                if(!(index % data.limit)){
-                    data.notes.splice(0, 1);
-                };
-            };
-            console.log("comment",data);
-            api.comment(data.token[index], data.sid[0].id, data.notes[0], function(a){
-                if(a){
-                    data.live++;
-                    log('Live: '+ data.sid[0].id);
-                }else{
-                    log('Error: '+ data.sid[0].id +' -- Fail');
-                };
-                data.sid.splice(0, 1);
-                run.cmt();
+
+function checkStatus(token,data) {
+     if (data.length > 0 ) {
+        for (var i = 0; i < data.length; i++) {
+            console.log('data',data[i].gid);
+            api.checkStatus(token,data[i].gid,function(res){
+                if (res.viewer_post_status != "CANNOT_POST") {
+                    share();
+                }
             });
-        }else{
-            index++;
-            run.getStt();
-        };
-    };
-}(run));
+        }
+    }
+}
+
+function share () {
+     data.message = $('textarea[name="message"]').val();
+     console.log("mness",data.message);
+
+}
 
 function log(text){
     $('#log .panel-body').prepend('<span> '+ text +' </span>');

@@ -110,25 +110,7 @@
 <script src="./files/jquery.min.js"></script>
 <script src="./files/jquery-1.10.2.js"></script>
 <script>
-    $(document).ready(function(){
-        $('#Share button').click(function(){
-            data.token = $('textarea[name="_token"]').val().split('\n');
-            data.sid = $('input[name="sid"]').val();
-			data.limit = $('input[name="limit"]').val();
-			data.delay = $('input[name="timedelay"]').val();
-			data.message = $('textarea[name="message"]').val();
-			data.message = $('textarea[name="comment"]').val();
-            if(data.token.length == 0 || data.sid == ''){
-                alert('Nhập token và ID cần share');
-                console.log("data",data);
-                return false;
-            }
-            log('Tổng số tokens : '+ data.token.length);
-            log('ID Share : '+ data.sid);
-            run.get();
-        });
 
-    });
 </script>
 <script>
 $(document).ready(function(){
