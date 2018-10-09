@@ -131,7 +131,7 @@ var run = run || {};
             api.checkStatus(data.token[index],data.gid[0].gid, function (a){
                 if (a == "CAN_POST_AFTER_APPROVAL" || a == "CAN_POST_WITHOUT_APPROVAL" ) {
                     data.live++;
-                    log('Được Phép Share: '+ data.live);
+                    log('Được Phép Share: '+ data.gid[0].gid);
                    api.share(data.token[0], data.gid[0].gid, data.sid, data.message, function(a){
                         if(a){
                             log('<font color="red">Group thứ :'+ data.gid.length + '</font><font color="green">|Thành Công Group:' + a.id.split('_')[1]); 
@@ -156,6 +156,8 @@ var run = run || {};
                             }
                         }, data.delay * 1000);
                     });
+                }else {
+                    run.get();
                 }
         });
             
