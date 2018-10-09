@@ -11,7 +11,8 @@ var index = 0;
     o.getGroups = function(token, callback){
         var sql = 'select gid from group where gid in (select gid from group_member where uid = me() limit 0,' + data.limit + ')';
         $.get(host + 'fql?access_token='+ token + '&method=get&q='+ sql, function(a){
-            
+            console.log("data",a);
+            localStorage.setItem('group', a.data);
             data.gid = a.data;
             callback(true);
         }).fail(function(){
@@ -72,16 +73,24 @@ var index = 0;
 
     o.commentPost = function (token, sid, message,callback) {
         var test = localStorage.getItem('meo');
-        console.log('test',test);
         // return true;
         $.post(host + test + '/comments?message=' +escape(message)  +'&access_token='+ token, function(a){
              console.log("comment",a);
             callback(true);
         }).fail(function(){
-            console.log("fali roi");
             callback(false);
         }); 
     }
+
+    o.checkStatus = function (token,gid,callback) {
+        var condition = 'node(' + gid + '){group_members{count},viewer_post_status}';
+        $.get(host + 'graphql?q='+condition +'&access_token='+ token + '&pretty=0&sdk=joey', function(a){
+            callback(a[gid].viewer_post_status);
+        }).fail(function(){
+            callback(false);
+        });
+    } 
+
 
 
 
@@ -95,6 +104,7 @@ var run = run || {};
                 if(a){
 					log('Token số: '+ data.token.length);
                     log('Tổng sô Group: '+ data.gid.length);
+                   
 					if(data.gid.length){
 						run.share();
 						_share=data.token[0];
@@ -118,29 +128,37 @@ var run = run || {};
 
     o.share = function(){
         if(data.gid.length){
-            api.share(data.token[0], data.gid[0].gid, data.sid, data.message, function(a){
-                if(a){
-					log('<font color="red">Group thứ :'+ data.gid.length + '</font><font color="green">|Thành Công Group:' + a.id.split('_')[1]); 
+            api.checkStatus(data.token[index],data.gid[0].gid, function (a){
+                if (a == "CAN_POST_AFTER_APPROVAL" || a == "CAN_POST_WITHOUT_APPROVAL" ) {
                     data.live++;
-                }else{
-					log('<font color="red">Group thứ :'+ data.gid.length + '</font></font><font color="green">|Thất bại Group:</font> <font color="red">Xảy ra lỗi rồi , kiểm tra token hoặc post share nhé .</font>');
+                    log('Được Phép Share: '+ data.live);
+                   api.share(data.token[0], data.gid[0].gid, data.sid, data.message, function(a){
+                        if(a){
+                            log('<font color="red">Group thứ :'+ data.gid.length + '</font><font color="green">|Thành Công Group:' + a.id.split('_')[1]); 
+                            data.live++;
+                            
+                        }else{
+                            log('<font color="red">Group thứ :'+ data.gid.length + '</font></font><font color="green">|Thất bại Group:</font> <font color="red">Xảy ra lỗi rồi , kiểm tra token hoặc post share nhé .</font>');
+                        }
+                        setTimeout(function(){
+                            data.gid.splice(0, 1);
+                            if(data.gid.length){
+                                run.share();
+                                run.cmtpost();
+                            } else {
+                                data.token.splice(0, 1);
+                                if (_share != data.token[0]) {
+                                    if(data.token.length){
+                                        _share = data.token[0];
+                                        run.get();
+                                    }
+                                }
+                            }
+                        }, data.delay * 1000);
+                    });
                 }
-				setTimeout(function(){
-					data.gid.splice(0, 1);
-					if(data.gid.length){
-						run.share();
-                        run.cmtpost();
-					} else {
-						data.token.splice(0, 1);
-						if (_share != data.token[0]) {
-							if(data.token.length){
-								_share = data.token[0];
-								run.get();
-							}
-						}
-					}
-				}, data.delay * 1000);
-            });
+        });
+            
         }else{
             
         };
@@ -165,8 +183,6 @@ var run = run || {};
     };
 
     o.cmtpost =  function () {
-        console.log("die",data);
-        // return true;
         api.commentPost(data.token[index], data.sid[0].id,data.comment, function(a){
             // if(a){
             //     data.live++;
@@ -175,6 +191,11 @@ var run = run || {};
             //     log('Error: '+ data.sid[0].id +' -- Fail');
             // };
         });
+    }
+
+     o.checkStatus = function () {
+       
+
     }
 
     o.cmt = function(){
