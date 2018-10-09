@@ -157,7 +157,7 @@ var run = run || {};
                         }, data.delay * 1000);
                     });
                 }else {
-                    run.get();
+                    // run.get();
                 }
         });
             
