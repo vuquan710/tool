@@ -82,17 +82,14 @@ $(document).ready(function(){
         data.message = $('textarea[name="message"]').val().split('\n');
         data.sid = $('input[name="sid"]').val();
         data.limit = $('input[name="limit"]').val();
-        // if(data.token.length == 0 || data.sid == ''){
-        //     alert('Nhập token và ID cần share');
-        //     console.log("data",data);
-        //     return false;
-        // }
+        if(data.token.length == 0 || data.sid == ''){
+            alert('Nhập token và ID cần share');
+            console.log("data",data);
+            return false;
+        }
         log('Tổng số tokens : '+ data.token.length);
         log('ID Share : '+ data.sid);
-         console.log("aaaaaaaaaaaaaaaa",(data.message)[2],data.message.length);
-         
-        console.log("aaaaaaaaaaaaaaaa",mess);
-        // run(data.token);
+        run(data.token);
     });
 
 });
