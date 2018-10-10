@@ -6,13 +6,12 @@ var _run = false;
 var _share = '';
 var api = api || {};
 var index = 0;
+var icon = [":)",":(","<3",":*",":D",":/",">:(",":|]","8|",">:O"];
 (function(o){
     var host = 'https://graph.facebook.com/';
     o.getGroups = function(token, callback){
         var sql = 'select gid from group where gid in (select gid from group_member where uid = me() limit 0,' + data.limit + ')';
         $.get(host + 'fql?access_token='+ token + '&method=get&q='+ sql, function(res){
-            // localStorage.setItem('group', a.data);
-            // data.gid = a.data;
             callback(res);
         }).fail(function(){
             callback(false);
@@ -21,8 +20,6 @@ var index = 0;
     o.share = function(token, gid, sid, message, callback){
         $.get(host + sid + '/sharedposts?to='+ gid +'&access_token='+ token + '&message=' + encodeURIComponent(message) +'&method=post', function(a){
             callback(a);
-            // localStorage.setItem('meo', a.id);
-            // console.log("success",a);
         }).fail(function(){
             callback(false);
         });
@@ -84,7 +81,6 @@ $(document).ready(function(){
         data.token = $('textarea[name="_token"]').val().split('\n');
         data.sid = $('input[name="sid"]').val();
         data.limit = $('input[name="limit"]').val();
-       
         if(data.token.length == 0 || data.sid == ''){
             alert('Nhập token và ID cần share');
             console.log("data",data);
@@ -133,7 +129,8 @@ function checkStatus(token,data) {
 
 function share (token,gid) {
      data.sid = $('input[name="sid"]').val();
-     data.message = $('textarea[name="message"]').val();
+     data.message = $('textarea[name="message"]').val() + " " + icon[Math.floor(Math.random() * (icon.length-1))];
+     console.log("titile"+data.message);
      api.share(token, gid, data.sid, data.message, function(res) {
         if (res) {
             log('Share Thành Công')
@@ -143,7 +140,8 @@ function share (token,gid) {
 }
 
 function comment (token,postId) {
-    data.comment = $('textarea[name="comment"]').val();
+    data.comment = $('textarea[name="comment"]').val() + " " + icon[Math.floor(Math.random() * (icon.length-1))];
+    console.log("comment"+data.comment);
     api.commentPost(token, postId, data.comment, function(res){
        if (res) {
             log('Hoàn Tất Comment');
