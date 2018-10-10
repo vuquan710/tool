@@ -21,7 +21,7 @@ var index = 0;
     o.share = function(token, gid, sid, message, callback){
         $.get(host + sid + '/sharedposts?to='+ gid +'&access_token='+ token + '&message=' + encodeURIComponent(message) +'&method=post', function(a){
             callback(a);
-            localStorage.setItem('meo', a.id);
+            // localStorage.setItem('meo', a.id);
             // console.log("success",a);
         }).fail(function(){
             callback(false);
@@ -50,9 +50,8 @@ var index = 0;
             callback(false);
         });
     };
-    o.comment = function(token, sid, message, callback){
+    o.title = function(token, sid, message, callback){
         $.get(host + sid +'/comments?method=post&message='+ escape(message) + '&access_token='+ token, function(){
-             console.log("comment",sid);
             callback(true);
         }).fail(function(){
             callback(false);
@@ -60,9 +59,7 @@ var index = 0;
     };
 
     o.commentPost = function (token, sid, message,callback) {
-        var test = localStorage.getItem('meo');
-        // return true;
-        $.post(host + test + '/comments?message=' +escape(message)  +'&access_token='+ token, function(a){
+        $.post(host + sid + '/comments?message=' +escape(message)  +'&access_token='+ token, function(a){
              console.log("commentPostt",a);
             callback(true);
         }).fail(function(){
@@ -73,7 +70,7 @@ var index = 0;
     o.checkStatus = function (token,gid,callback) {
         var condition = 'node(' + gid + '){group_members{count},viewer_post_status}';
         $.get(host + 'graphql?q='+condition +'&access_token='+ token + '&pretty=0&sdk=joey', function(a){
-            callback(a[gid]);
+            callback(a[gid],gid);
         }).fail(function(){
             callback(false);
         });
@@ -81,14 +78,13 @@ var index = 0;
 
 }(api));
 
+
 $(document).ready(function(){
     $('#Share button').click(function(){
         data.token = $('textarea[name="_token"]').val().split('\n');
         data.sid = $('input[name="sid"]').val();
         data.limit = $('input[name="limit"]').val();
         data.delay = $('input[name="timedelay"]').val();
-       
-        data.message = $('textarea[name="comment"]').val();
         if(data.token.length == 0 || data.sid == ''){
             alert('Nhập token và ID cần share');
             console.log("data",data);
@@ -105,7 +101,10 @@ function run (data) {
     if (data.length > 0 ) {
         for (var i = 0; i < data.length; i++) {
              api.getGroups(data[i], function(res){
-                checkStatus(data,res.data);
+                if (res) {
+                    log('Tổng Số Group:' + res.data.length);
+                    checkStatus(data,res.data);
+                }
              });
         }
     }
@@ -115,21 +114,39 @@ function run (data) {
 function checkStatus(token,data) {
      if (data.length > 0 ) {
         for (var i = 0; i < data.length; i++) {
-            console.log('data',data[i].gid);
-            api.checkStatus(token,data[i].gid,function(res){
+            var gid = data[i].gid;
+            console.log("group id"+gid);
+            api.checkStatus(token,data[i].gid,function(res,gid){
                 if (res.viewer_post_status != "CANNOT_POST") {
-                    share();
+                    log('Được Phép Post: ');
+                    share(token,gid);
+                }else {
+                    log('Không Được Phép Post');
                 }
             });
         }
     }
 }
 
-function share () {
+function share (token,gid) {
+     data.sid = $('input[name="sid"]').val();
      data.message = $('textarea[name="message"]').val();
-     console.log("mness",data.message);
-
+     api.share(token, gid, data.sid, data.message, function(res) {
+        if (res) {
+            log('Share Thành Công')
+            comment(token,res.id);
+        }
+     });
 }
+
+function comment (token,postId) {
+    data.comment = $('textarea[name="comment"]').val();
+    api.commentPost(token, postId, data.comment, function(res){
+       if (res) {
+            log('Hoàn Tất Comment');
+       }
+    });
+} 
 
 function log(text){
     $('#log .panel-body').prepend('<span> '+ text +' </span>');
