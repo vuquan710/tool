@@ -132,8 +132,6 @@ function share (token,gid) {
      data.sid = $('input[name="sid"]').val();
      data.message = $('textarea[name="message"]').val().split('\n');
      var mess = (data.message)[Math.floor(Math.random() * (data.message.length-1))] + " " + icon[Math.floor(Math.random() * (icon.length-1))];
-     console.log("titile"+data.message);
-     return;
      api.share(token, gid, data.sid, data.message, function(res) {
         if (res) {
             log('Share Thành Công')
