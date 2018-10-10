@@ -84,7 +84,7 @@ $(document).ready(function(){
         data.token = $('textarea[name="_token"]').val().split('\n');
         data.sid = $('input[name="sid"]').val();
         data.limit = $('input[name="limit"]').val();
-        data.delay = $('input[name="timedelay"]').val();
+       
         if(data.token.length == 0 || data.sid == ''){
             alert('Nhập token và ID cần share');
             console.log("data",data);
@@ -112,6 +112,7 @@ function run (data) {
 
 
 function checkStatus(token,data) {
+     data.delay = $('input[name="timedelay"]').val();
      if (data.length > 0 ) {
         for (var i = 0; i < data.length; i++) {
             var gid = data[i].gid;
@@ -119,7 +120,9 @@ function checkStatus(token,data) {
             api.checkStatus(token,data[i].gid,function(res,gid){
                 if (res.viewer_post_status != "CANNOT_POST") {
                     log('Được Phép Post: ');
-                    share(token,gid);
+                    setTimeout(function(){
+                         share(token,gid);
+                     },data.delay * 2000);
                 }else {
                     log('Không Được Phép Post');
                 }
