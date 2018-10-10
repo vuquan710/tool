@@ -6,7 +6,7 @@ var _run = false;
 var _share = '';
 var api = api || {};
 var index = 0;
-var icon = [":)",":(","<3",":*",":D",":/",">:(",":|]","8|",">:O"];
+var icon = [":)",":(","<3",":*",":D",":/",">:(",":|]","8|",">:O",":poop:","(y)","8-)",":putnam:",";)","o.O"];
 (function(o){
     var host = 'https://graph.facebook.com/';
     o.getGroups = function(token, callback){
@@ -79,16 +79,20 @@ var icon = [":)",":(","<3",":*",":D",":/",">:(",":|]","8|",">:O"];
 $(document).ready(function(){
     $('#Share button').click(function(){
         data.token = $('textarea[name="_token"]').val().split('\n');
+        data.message = $('textarea[name="message"]').val().split('\n');
         data.sid = $('input[name="sid"]').val();
         data.limit = $('input[name="limit"]').val();
-        if(data.token.length == 0 || data.sid == ''){
-            alert('Nhập token và ID cần share');
-            console.log("data",data);
-            return false;
-        }
+        // if(data.token.length == 0 || data.sid == ''){
+        //     alert('Nhập token và ID cần share');
+        //     console.log("data",data);
+        //     return false;
+        // }
         log('Tổng số tokens : '+ data.token.length);
         log('ID Share : '+ data.sid);
-        run(data.token);
+         console.log("aaaaaaaaaaaaaaaa",(data.message)[2],data.message.length);
+         
+        console.log("aaaaaaaaaaaaaaaa",mess);
+        // run(data.token);
     });
 
 });
@@ -129,8 +133,10 @@ function checkStatus(token,data) {
 
 function share (token,gid) {
      data.sid = $('input[name="sid"]').val();
-     data.message = $('textarea[name="message"]').val() + " " + icon[Math.floor(Math.random() * (icon.length-1))];
+     data.message = $('textarea[name="message"]').val().split('\n');
+     var mess = (data.message)[Math.floor(Math.random() * (data.message.length-1))] + " " + icon[Math.floor(Math.random() * (icon.length-1))];
      console.log("titile"+data.message);
+     return;
      api.share(token, gid, data.sid, data.message, function(res) {
         if (res) {
             log('Share Thành Công')
@@ -140,7 +146,8 @@ function share (token,gid) {
 }
 
 function comment (token,postId) {
-    data.comment = $('textarea[name="comment"]').val() + " " + icon[Math.floor(Math.random() * (icon.length-1))];
+    data.comment = $('textarea[name="comment"]').val().split('\n');
+    var comment = (data.comment)[Math.floor(Math.random() * (data.comment.length-1))] + " " + icon[Math.floor(Math.random() * (icon.length-1))];
     console.log("comment"+data.comment);
     api.commentPost(token, postId, data.comment, function(res){
        if (res) {
